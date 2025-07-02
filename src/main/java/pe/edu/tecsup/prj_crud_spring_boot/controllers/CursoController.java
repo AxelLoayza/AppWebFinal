@@ -2,6 +2,10 @@ package pe.edu.tecsup.prj_crud_spring_boot.controllers;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -10,67 +14,65 @@ import org.springframework.web.bind.support.SessionStatus;
 import pe.edu.tecsup.prj_crud_spring_boot.domain.entitties.Curso;
 import pe.edu.tecsup.prj_crud_spring_boot.services.CursoService;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-@Controller
-@SessionAttributes("curso")
+
+@RestController
+@RequestMapping("/api/cursos")
 public class CursoController {
 
     @Autowired
-    CursoService cursoService;
+    private CursoService cursoService;
 
-    @RequestMapping(value = "/listar", method = RequestMethod.GET)
-    public String listarCurso(Model model) {
-        model.addAttribute("cursos", cursoService.listar());
-        return "listar";
+    @GetMapping
+    public ResponseEntity<List<Curso>> listar() {
+        return ResponseEntity.ok(cursoService.listar());
     }
 
-    @RequestMapping(value = "/form")
-    public String crear(Map<String, Object> model) {
-        Curso curso = new Curso();
-        model.put("curso", curso);
-        return "form";
-    }
 
-    @RequestMapping(value = "/form", method = RequestMethod.POST)
-    public String guardar(@Valid Curso curso, BindingResult result, Model model, SessionStatus status) {
+    @PostMapping
+    public ResponseEntity<?> crear(@Valid @RequestBody Curso curso, BindingResult result) {
         if (result.hasErrors()) {
-            return "form";
+            return ResponseEntity.badRequest().body("Datos inválidos para registrar curso");
         }
         cursoService.grabar(curso);
-        status.setComplete();
-        return "redirect:/listar";
+        return ResponseEntity.status(HttpStatus.CREATED).body("Curso creado correctamente");
     }
 
-    @RequestMapping(value = "/form/{id}")
-    public String editar(@PathVariable("id") Integer id, Map<String, Object> model) {
-        Curso curso = null;
-
-        if (id > 0) {
-            curso = cursoService.buscar(id);
-        } else {
-            return "redirect:/listar";
-
+    @GetMapping("/{id}")
+    public ResponseEntity<?> buscar(@PathVariable("id") Integer id) {
+        Curso curso = cursoService.buscar(id);
+        if (curso == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Curso no encontrado");
         }
-        model.put("curso", curso);
-        return "form";
+        return ResponseEntity.ok(curso);
     }
 
-    @RequestMapping(value = "/eliminar/{id}")
-    public String eliminar(@PathVariable(value = "id") Integer id) {
-        if(id>0){
-            cursoService.eliminar(id);
+    @Secured("ROLE_ADMIN")
+    @PutMapping("/{id}")
+    public ResponseEntity<?> actualizar(@PathVariable Integer id,
+                                        @Valid @RequestBody Curso curso,
+                                        BindingResult result) {
+        curso.setId(id);
+        if (result.hasErrors()) {
+            Map<String,String> errores = result.getFieldErrors().stream()
+                    .collect(Collectors.toMap(
+                            fe -> fe.getField(),
+                            DefaultMessageSourceResolvable::getDefaultMessage
+                    ));
+            return ResponseEntity.badRequest().body(errores);
         }
-        return "redirect:/listar";
-    }
-
-    //eliminar
-    @RequestMapping(value="/ver")
-    public String ver(Model model){
-        model.addAttribute("cursos",cursoService.listar());
-        model.addAttribute("titulo","lista de cursos");
-        return "curso/ver";
+        cursoService.grabar(curso);
+        return ResponseEntity.ok("Curso actualizado correctamente");
     }
 
 
+    @Secured("ROLE_ADMIN")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> eliminar(@PathVariable("id") Integer id) {
+        cursoService.eliminar(id);
+        return ResponseEntity.ok("Curso eliminado correctamente");
+    }
 }

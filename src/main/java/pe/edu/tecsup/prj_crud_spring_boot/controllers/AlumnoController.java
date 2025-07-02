@@ -1,5 +1,7 @@
 package pe.edu.tecsup.prj_crud_spring_boot.controllers;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import pe.edu.tecsup.prj_crud_spring_boot.domain.entitties.Alumno;
 import pe.edu.tecsup.prj_crud_spring_boot.services.AlumnoService;
 import org.springframework.stereotype.Controller;
@@ -10,63 +12,54 @@ import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.validation.Valid;
 
+import java.util.List;
 import java.util.Map;
 
-@Controller
-@SessionAttributes("alumno")
+@RestController
+@RequestMapping("/api/alumnos")
+
 public class AlumnoController {
 
     @Autowired
-    AlumnoService alumnoService;
+    private AlumnoService alumnoService;
 
-    @RequestMapping(value = "/listarAlumnos", method = RequestMethod.GET)
-    public String listarAlumnos(Model model) {
-        model.addAttribute("alumnos", alumnoService.listar());
-        return "listarAlumnos";
+    @GetMapping
+    public ResponseEntity<List<Alumno>> listarAlumnos() {
+        List<Alumno> alumnos = alumnoService.listar();
+        return ResponseEntity.ok(alumnos);
     }
 
-    @RequestMapping(value = "/formAlumno")
-    public String crear(Map<String, Object> model) {
-        Alumno alumno = new Alumno();
-        model.put("alumno", alumno);
-        return "formAlumno";
-    }
-
-    @RequestMapping(value = "/formAlumno", method = RequestMethod.POST)
-    public String guardar(@Valid Alumno alumno, BindingResult result, Model model, SessionStatus status) {
+    @PostMapping
+    public ResponseEntity<?> crear(@Valid @RequestBody Alumno alumno, BindingResult result) {
         if (result.hasErrors()) {
-            return "formAlumno";
+            return ResponseEntity.badRequest().body("Errores en los campos del alumno");
         }
         alumnoService.grabar(alumno);
-        status.setComplete();
-        return "redirect:/listarAlumnos";
+        return ResponseEntity.status(HttpStatus.CREATED).body("Alumno registrado correctamente");
     }
 
-    @RequestMapping(value = "/formAlumno/{id}")
-    public String editar(@PathVariable("id") Integer id, Map<String, Object> model) {
-        Alumno alumno = null;
-
-        if (id > 0) {
-            alumno = alumnoService.buscar(id);
-        } else {
-            return "redirect:/listarAlumnos";
+    @GetMapping("/{id}")
+    public ResponseEntity<?> obtener(@PathVariable Integer id) {
+        Alumno alumno = alumnoService.buscar(id);
+        if (alumno == null) {
+            return ResponseEntity.notFound().build();
         }
-        model.put("alumno", alumno);
-        return "formAlumno";
+        return ResponseEntity.ok(alumno);
     }
 
-    @RequestMapping(value = "/eliminarAlumno/{id}")
-    public String eliminar(@PathVariable(value = "id") Integer id) {
-        if (id > 0) {
-            alumnoService.eliminar(id);
+    @PutMapping("/{id}")
+    public ResponseEntity<?> actualizar(@PathVariable Integer id, @Valid @RequestBody Alumno alumno, BindingResult result) {
+        if (result.hasErrors()) {
+            return ResponseEntity.badRequest().body("Errores de validación al actualizar");
         }
-        return "redirect:/listarAlumnos";
+        alumno.setId(id); // Importante: setear el ID
+        alumnoService.grabar(alumno);
+        return ResponseEntity.ok("Alumno actualizado correctamente");
     }
 
-    @RequestMapping(value = "/verAlumnos")
-    public String ver(Model model) {
-        model.addAttribute("alumnos", alumnoService.listar());
-        model.addAttribute("titulo", "Lista de Alumnos");
-        return "alumno/verAlumnos";
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> eliminar(@PathVariable Integer id) {
+        alumnoService.eliminar(id);
+        return ResponseEntity.ok("Alumno eliminado");
     }
 }
