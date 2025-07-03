@@ -1,6 +1,7 @@
 import { Link, NavLink } from 'react-router-dom';
 
 const Header = () => {
+  const swaggerUrl = `${import.meta.env.VITE_API_BASE_URL}/swagger-ui/index.html#/`;
   return (
     <aside className="navbar navbar-expand-lg bg-body-tertiary">
       <div className="container-fluid">
@@ -22,7 +23,7 @@ const Header = () => {
             <NavLink to="/home" className="nav-link">Home</NavLink>
             <NavLink to="/alumno" className="nav-link">Alumno</NavLink>
             <NavLink to="/curso" className="nav-link">Curso</NavLink>
-            <a href= "http://localhost:8080/swagger-ui/index.html#/" className="nav-link " aria-disabled="true">Documentación</a>
+            <a href={swaggerUrl} className="nav-link" aria-disabled="true">Documentación</a>
           </div>
         </div>
       </div>

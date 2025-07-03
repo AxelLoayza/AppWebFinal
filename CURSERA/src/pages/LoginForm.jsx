@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { login } from '../api/auth';
 import { toast } from 'react-toastify';
+import {ToastContainer} from 'react-toastify';
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ const LoginForm = () => {
 
 
   return (
+    <>
     <div className="login-wrapper">
       <div className="login-card">
         <h2>Iniciar Sesión</h2>
@@ -58,6 +60,9 @@ const LoginForm = () => {
         </form>
       </div>
     </div>
+    <ToastContainer/>
+    </>
+
   );
 };
 
