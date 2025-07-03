@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: pe.edu.tecsup.prj_crud_spring_boot.PrjCrudSpringBootApplicationTests
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 21.96 s -- in pe.edu.tecsup.prj_crud_spring_boot.PrjCrudSpringBootApplicationTests
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 18.79 s -- in pe.edu.tecsup.prj_crud_spring_boot.PrjCrudSpringBootApplicationTests
